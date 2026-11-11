@@ -113,6 +113,7 @@ async function dispatchConsolidator(
 		const prompt = buildConsolidatorPrompt(runtime.memoryRoot, promote, runtime.config.journeyTargetTokens);
 		const argv = buildWorkerArgv({
 			model: runtime.config.models.consolidator,
+			workerExtensions: runtime.config.workerExtensions,
 			sessionName: `om-consolidator-${runId}`,
 			kickoffPrompt: prompt,
 		});

@@ -30,6 +30,8 @@ export interface Config {
 	journeyTargetTokens: number;
 	/** Max simultaneous in-flight observer subprocesses. */
 	observerConcurrency: number;
+	/** Extra extension paths loaded in workers (`-e <path>`), e.g. a provider extension; workers run with `--no-extensions`. */
+	workerExtensions: string[];
 	models: {
 		observer: ConfiguredModel;
 		consolidator: ConfiguredModel;
@@ -55,6 +57,7 @@ export const DEFAULTS: Config = {
 	tailTokens: 20_000,
 	journeyTargetTokens: 1_000,
 	observerConcurrency: 4,
+	workerExtensions: [],
 	resumeAfterMidRunCompaction: true,
 	models: {
 		observer: { provider: "openrouter", id: "z-ai/glm-5.3", thinking: "low" },
@@ -117,6 +120,11 @@ function normalizeSettingsConfig(value: Record<string, unknown>, base: Config): 
 		normalized.resumeAfterMidRunCompaction = value.resumeAfterMidRunCompaction;
 	if (typeof value.passive === "boolean") normalized.passive = value.passive;
 	if (typeof value.debugLog === "boolean") normalized.debugLog = value.debugLog;
+	if (Array.isArray(value.workerExtensions)) {
+		normalized.workerExtensions = value.workerExtensions.filter(
+			(entry): entry is string => typeof entry === "string" && entry.length > 0,
+		);
+	}
 	if (isRecord(value.models)) {
 		normalized.models = {
 			observer: normalizeModel(value.models.observer, base.models.observer),
@@ -157,6 +165,8 @@ export function loadConfig(cwd: string, env: NodeJS.ProcessEnv = process.env): C
 		...globalConfig,
 		...projectConfig,
 		...envConfig,
+		// Global only: a project settings file must not choose code that workers load.
+		workerExtensions: globalConfig.workerExtensions ?? DEFAULTS.workerExtensions,
 		models: {
 			...DEFAULTS.models,
 			...globalConfig.models,

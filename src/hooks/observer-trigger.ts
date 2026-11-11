@@ -146,6 +146,7 @@ async function dispatchObserver(
 
 		const argv = buildWorkerArgv({
 			model: runtime.config.models.observer,
+			workerExtensions: runtime.config.workerExtensions,
 			sessionName: `om-observer-${runId}`,
 			kickoffPrompt: userText,
 		});

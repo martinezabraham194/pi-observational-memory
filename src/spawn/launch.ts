@@ -42,6 +42,7 @@ export function buildWorkerArgv(opts: {
 	sessionName: string;
 	kickoffPrompt: string;
 	agentExtensionPath?: string;
+	workerExtensions?: string[];
 }): string[] {
 	const pi = resolvePiBinary();
 	const args = [
@@ -55,6 +56,7 @@ export function buildWorkerArgv(opts: {
 		modelArg(opts.model),
 	];
 	if (opts.model.thinking) args.push("--thinking", opts.model.thinking);
+	for (const path of opts.workerExtensions ?? []) args.push("-e", path);
 	args.push("-e", opts.agentExtensionPath ?? AGENT_EXTENSION_PATH);
 	args.push("-n", opts.sessionName);
 	args.push("-p", opts.kickoffPrompt);
