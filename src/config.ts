@@ -42,6 +42,8 @@ export interface Config {
 	 * it stops as if nothing happened. Default true.
 	 */
 	resumeAfterMidRunCompaction: boolean;
+	/** Gate state for a session that never ran `/om on|off`. Default false (opt-in per session). */
+	enabledByDefault: boolean;
 	/** Power-user setting: disable all triggers (distinct from the on/off gate). */
 	passive: boolean;
 	/** Emit the NDJSON debug log. */
@@ -63,6 +65,7 @@ export const DEFAULTS: Config = {
 		observer: { provider: "openrouter", id: "z-ai/glm-5.3", thinking: "low" },
 		consolidator: { provider: "openrouter", id: "z-ai/glm-5.3", thinking: "medium" },
 	},
+	enabledByDefault: false,
 	passive: false,
 	debugLog: false,
 };
@@ -118,6 +121,7 @@ function normalizeSettingsConfig(value: Record<string, unknown>, base: Config): 
 	if (value.chunkOverlapTokens === 0) normalized.chunkOverlapTokens = 0;
 	if (typeof value.resumeAfterMidRunCompaction === "boolean")
 		normalized.resumeAfterMidRunCompaction = value.resumeAfterMidRunCompaction;
+	if (typeof value.enabledByDefault === "boolean") normalized.enabledByDefault = value.enabledByDefault;
 	if (typeof value.passive === "boolean") normalized.passive = value.passive;
 	if (typeof value.debugLog === "boolean") normalized.debugLog = value.debugLog;
 	if (Array.isArray(value.workerExtensions)) {

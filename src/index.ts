@@ -6,7 +6,7 @@
  * TUI. Event-driven only — no daemon.
  *
  * Ships in the global extensions folder during development, so it is gated OFF by default per
- * session (A2a). When the gate is off, every handler returns at its first line and the
+ * session (A2a) unless `enabledByDefault` is set. When the gate is off, every handler returns at its first line and the
  * extension is completely invisible.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -17,19 +17,10 @@ import { registerCompactionHook } from "./hooks/compaction-hook.js";
 import { registerCompactionTrigger } from "./hooks/compaction-trigger.js";
 import { registerConsolidatorTrigger } from "./hooks/consolidator-trigger.js";
 import { registerObserverTrigger } from "./hooks/observer-trigger.js";
+import { readGateFromLedger } from "./gate.js";
 import { OM_ENABLED, type Entry } from "./ledger/index.js";
 import { ensureSessionMemory } from "./memory/session.js";
 import { Runtime } from "./runtime.js";
-
-function readGateFromLedger(branch: Entry[]): boolean {
-	for (let i = branch.length - 1; i >= 0; i--) {
-		const entry = branch[i];
-		if (entry.type === "custom" && entry.customType === OM_ENABLED) {
-			return (entry.data as { enabled?: boolean } | undefined)?.enabled ?? false;
-		}
-	}
-	return false;
-}
 
 export default function observationalMemory(pi: ExtensionAPI): void {
 	const runtime = new Runtime();
@@ -46,7 +37,7 @@ export default function observationalMemory(pi: ExtensionAPI): void {
 		runtime.ensureConfig(ctx.cwd);
 		runtime.dispatchedCoversUpToId = undefined;
 		const branch = ctx.sessionManager.getBranch() as Entry[];
-		runtime.enabled = readGateFromLedger(branch);
+		runtime.enabled = readGateFromLedger(branch, runtime.config.enabledByDefault);
 		if (runtime.enabled) runtime.memoryRoot = ensureSessionMemory(ctx);
 		attachIfEnabled(ctx);
 		runtime.refreshFooterGauges(branch, ctx.getContextUsage?.()?.tokens ?? null);
